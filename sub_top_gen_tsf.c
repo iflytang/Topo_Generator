@@ -1,8 +1,18 @@
+/**
+* usage: open files with 'cygdrive', and enter CLIs as follows:
+*        1. gcc sub_top_gen_tsf.c -o sub_top_gen_tsf.exe
+*        2. ./sub_top_gen_tsf.exe 10 10 0.2 tsf10_10
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <math.h>
 #include <time.h>
+
+#include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #define LEN_FILENAME 128
 #define LEN_CMD 128
@@ -39,7 +49,9 @@ int main(int argc, char **argv)
 
   FILE *fp;
   FILE *reqfile;
-  char filename[LEN_FILENAME], reqfilename[LEN_FILENAME];
+  FILE *reqfile_topomat;    // topology matrix
+
+  char filename[LEN_FILENAME], reqfilename[LEN_FILENAME], reqfilename_topomat[LEN_FILENAME];
   char cmd[LEN_CMD];
   int *n_x, *n_y, t1, t2;
 
@@ -85,7 +97,7 @@ int main(int argc, char **argv)
   system(cmd);
 
   char str[1000];
-  int j;
+  int i = 0, j = 0; 
   sprintf(filename, "alt/sub.alt");
   fp = fopen(filename, "r");
 
@@ -106,6 +118,9 @@ int main(int argc, char **argv)
   sprintf(reqfilename, "%s/sub_%s_%s.txt", req_folder, argv[1], argv[2]);
   reqfile = fopen(reqfilename, "w");
 
+  sprintf(reqfilename_topomat, "%s/sub_mat_%s_%s.txt", req_folder, argv[1], argv[2]);
+  reqfile_topomat = fopen(reqfilename_topomat, "w");
+
   // remove preamble
   for (j = 0; j < 10; j++)
     fscanf(fp, "%s", str);
@@ -116,6 +131,8 @@ int main(int argc, char **argv)
   //fprintf(reqfile,"SIZES (number-of-nodes number-of-edges)\n%d %d\n\n",num_nodes,num_edges);
   fprintf(reqfile, "%d %d %d\n", num_nodes, num_edges, scale);
 
+  printf("==========================================\n");
+
   for (j = 0; j < 11; j++)
   {
     fscanf(fp, "%s", str);
@@ -124,6 +141,10 @@ int main(int argc, char **argv)
 
   n_x = (int *)malloc(num_nodes * sizeof(int));
   n_y = (int *)malloc(num_nodes * sizeof(int));
+
+  /* topology matrix array */
+  int topo_mat[num_nodes][num_nodes];
+  memset(topo_mat, 0x00, sizeof(topo_mat));
 
   // generate CPU and table resources for the nodes
   //fprintf(reqfile, "LOCATIONS (x,y)\n");
@@ -136,11 +157,15 @@ int main(int argc, char **argv)
     fprintf(reqfile, "%d %d %.2lf %.2lf\n", n_x[j], n_y[j], r1 * (MAX_CPU - MIN_CPU) + MIN_CPU, r2 * (MAX_TABLE - MIN_TABLE) + MIN_TABLE);
   }
 
+  printf("==========================================\n");
+
   for (j = 0; j < 6; j++)
   {
     fscanf(fp, "%s", str);
     printf("%s\n", str);
   }
+
+  long offset = ftell(fp);  // record fp pointer
 
   //fprintf(reqfile,"EDGES (from-node to-node)\n");
   // generate bandwidth for the links
@@ -152,10 +177,33 @@ int main(int argc, char **argv)
     fprintf(reqfile, "%d %d %.2lf %.2lf\n", from, to, r3 * (MAX_BW - MIN_BW) + MIN_BW, dis(n_x[from], n_y[from], n_x[to], n_y[to]));
   }
 
+  printf("==========================================\n");
+  fseek(fp, offset, SEEK_SET);  // reseek fp to EDGES
+  /* 1. generate link connection matrix. */
+  for (j = 0; j < num_edges; j++)
+  {
+    fscanf(fp, "%d %d %*d %*d", &from, &to);
+    topo_mat[from][to] = 1;  // set as 1 if there's a link
+    topo_mat[to][from] = 1;  // symmetric matrix, undirected graph
+    printf("%d %d %d\n", from, to, topo_mat[from][to]);
+  }
+
+  printf("==========================================\n");
+  /* 2. print link connection matrix. */
+  for (i = 0; i < num_nodes; i++) {
+    for (j = 0; j < num_nodes; j++) {
+      printf("%d ", topo_mat[i][j]);
+      fprintf(reqfile_topomat, "%d\t", topo_mat[i][j]);
+    }
+    printf("\n");
+    fprintf(reqfile_topomat, "\n");
+  }
+
   free(n_x);
   free(n_y);
 
   fclose(fp);
   fclose(reqfile);
+  fclose(reqfile_topomat);
   return 0;
 }
