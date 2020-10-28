@@ -20,7 +20,7 @@ double dis(int x1, int y1, int x2, int y2)
 {
   return sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
 }
-//计算两点之间的距离，cygdrive cli：./sub_top_gen_hhb.exe 50 10 0.5 tsf50-3
+//计算两点之间的距离，cygdrive cli：./sub_top_gen_tsf.exe 50 10 0.5 tsf50-3
 int main(int argc, char **argv)
 {
   int xseed = (unsigned)time(NULL); // Current Time
@@ -47,13 +47,13 @@ int main(int argc, char **argv)
   int check_delete = system("rm -fr spec/itm*"); //删除当前路径下spec目录下的以itm开头的文件
   if (check_delete == -1)
   {
-    printf("Error by hhb: fail to delete files\n");
+    printf("Error by tsf: fail to delete files\n");
     exit(0);
   }
   check_delete = system("rm -fr alt/*.alt"); //删除当前路径下alt目录下后缀名是.alt的所有文件
   if (check_delete == -1)
   {
-    printf("Error by hhb: fail to delete files\n");
+    printf("Error by tsf: fail to delete files\n");
     exit(0);
   }
 

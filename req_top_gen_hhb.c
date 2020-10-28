@@ -23,10 +23,10 @@
 
 #define MAX_CPU 20
 #define MIN_CPU 5
-#define MAX_BW 15
-#define MIN_BW 5
-#define MAX_TABLE 6
-#define MIN_TABLE 2
+#define MAX_BW 100
+#define MIN_BW 10
+#define MAX_TABLE 100
+#define MIN_TABLE 10
 #define THETA 0.5
 
 int poisson(double lambda) {
@@ -217,7 +217,7 @@ int main(int argc,char **argv)
 		}*/
 		duration = (int)(-log(rand()/(double)MY_RAND_MAX)*EXP_MEAN);
 
-		fprintf(fp_req,"%d %d 0 %d %d 0 %f\n",num_nodes,num_edges, time, duration, THETA);
+		fprintf(fp_req,"%d %d 0 %d %d 0 %.2f\n",num_nodes,num_edges, time, duration, THETA);
 		printf("time %d, duration %d\n", time, duration);
 
 		//skip
@@ -266,7 +266,8 @@ int main(int argc,char **argv)
 		{
 			double r1 = rand() / (double)MY_RAND_MAX;
 			double r2 = rand() / (double)MY_RAND_MAX;
-			fprintf(fp_req, "%d %d %.2lf %.2lf\n", n_x[j], n_y[j], r1*(MAX_CPU-MIN_CPU)+MIN_CPU, degree[j]*(r2*(MAX_TABLE-MIN_TABLE)+MIN_TABLE));
+			//fprintf(fp_req, "%d %d %.2lf %.2lf\n", n_x[j], n_y[j], r1*(MAX_CPU-MIN_CPU)+MIN_CPU, degree[j]*(r2*(MAX_TABLE-MIN_TABLE)+MIN_TABLE));
+			fprintf(fp_req, "%d %d %.2lf %.2lf\n", n_x[j], n_y[j], r1*(MAX_CPU-MIN_CPU)+MIN_CPU, r2*(MAX_TABLE-MIN_TABLE)+MIN_TABLE);
 		}
 		for(j = 0; j < num_edges; j++)
 		{
