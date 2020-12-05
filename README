@@ -1,1 +1,5 @@
 Generate topologies using GT-ITM
+
+usage: open files with 'cygdrive', and enter CLIs as follows:
+       1. gcc sub_top_gen_tsf.c -o sub_top_gen_tsf.exe
+       2. ./sub_top_gen_tsf.exe 10 10 0.2 tsf10_10
